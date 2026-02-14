@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML ROCKET</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+            position: relative;
+            background: #0a0e1a;
+            padding-bottom: 90px; /* Отступ для нижней навигации */
+        }
+
+        /* Твой крутой стеклянный стиль */
+        .glass-layers {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+        }
+
+        .glass-layer-1 {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(32, 65, 140, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(0, 165, 255, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(85, 60, 180, 0.35) 0%, transparent 50%);
+            backdrop-filter: blur(60px);
+            -webkit-backdrop-filter: blur(60px);
+            opacity: 0.8;
+        }
+
+        .glass-layer-2 {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(20, 40, 90, 0.15) 0%,
+                    rgba(10, 25, 60, 0.05) 50%,
+                    rgba(5, 15, 40, 0.1) 100%);
+            backdrop-filter: blur(80px) saturate(200%);
+            -webkit-backdrop-filter: blur(80px) saturate(200%);
+            opacity: 0.6;
+        }
+
+        .glass-layer-3 {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255, 255, 255, 0.02) 2px,
+                    rgba(255, 255, 255, 0.02) 4px
+                );
+            opacity: 0.3;
+        }
+
+        .glass-particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .glass-particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8), transparent 70%);
+            opacity: 0.1;
+        }
+
+        .particle-1 { width: 400px; height: 400px; top: -200px; right: -200px; }
+        .particle-2 { width: 300px; height: 300px; bottom: -150px; left: -150px; }
+        .particle-3 { width: 250px; height: 250px; top: 30%; left: 10%; }
+        .particle-4 { width: 200px; height: 200px; bottom: 20%; right: 15%; }
+
+        .glass-reflections {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(135deg, 
+                    transparent 40%,
+                    rgba(255, 255, 255, 0.03) 50%,
+                    transparent 60%),
+                linear-gradient(45deg, 
+                    transparent 30%,
+                    rgba(255, 255, 255, 0.02) 40%,
+                    transparent 50%);
+            z-index: -1;
+            opacity: 0.4;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px 20px 100px 20px;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+        }
+
+        /* Шапка с балансом */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: rgba(16, 25, 40, 0.4);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff, #a0c8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .balance-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 215, 0, 0.15);
+            padding: 8px 15px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            font-weight: 600;
+        }
+
+        .balance-badge span {
+            color: #ffd700;
+            font-size: 18px;
+        }
+
+        .username {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        /* Основная стеклянная карточка */
+        .glass-card {
+            background: rgba(16, 25, 40, 0.25);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Игровое поле */
+        .game-canvas-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #rocketCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .multiplier {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 48px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 30px #3a7bd5;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px 25px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Баланс под игрой */
+        .balance-large {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 900;
+            margin: 15px 0;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .balance-large small {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: normal;
+        }
+
+        /* Ставка */
+        .bet-section {
+            margin: 20px 0;
+        }
+
+        .bet-input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .bet-input {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .max-bet-btn {
+            padding: 0 20px;
+            background: rgba(58, 123, 213, 0.2);
+            border: 1px solid rgba(58, 123, 213, 0.3);
+            border-radius: 14px;
+            color: #a0c8ff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .max-bet-btn:hover {
+            background: rgba(58, 123, 213, 0.4);
+        }
+
+        .bet-presets {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .preset-btn {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .preset-btn:hover {
+            background: rgba(58, 123, 213, 0.3);
+            border-color: rgba(58, 123, 213, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .preset-btn.active {
+            background: #3a7bd5;
+            border-color: #3a7bd5;
+            box-shadow: 0 0 20px rgba(58, 123, 213, 0.5);
+        }
+
+        /* Кнопки игры */
+        .game-btn {
+            width: 100%;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: 900;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 15px 0;
+        }
+
+        .game-btn.start {
+            background: linear-gradient(135deg, #00c853, #64dd17);
+            color: white;
+            box-shadow: 0 0 30px rgba(0, 200, 83, 0.5);
+        }
+
+        .game-btn.stop {
+            background: linear-gradient(135deg, #ff1744, #d50000);
+            color: white;
+            box-shadow: 0 0 30px rgba(255, 23, 68, 0.5);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .game-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Потенциальный выигрыш */
+        .potential-win {
+            text-align: center;
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(0, 200, 83, 0.1);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 200, 83, 0.2);
+        }
+
+        .potential-win strong {
+            color: #00c853;
+            font-size: 24px;
+            margin-left: 10px;
+        }
+
+        /* Статистика */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 900;
+            margin-top: 5px;
+        }
+
+        .stat-value.win { color: #00c853; }
+        .stat-value.loss { color: #ff1744; }
+
+        /* История игр */
+        .history-list {
+            margin-top: 20px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border-left: 4px solid transparent;
+        }
+
+        .history-item.win {
+            border-left-color: #00c853;
+            background: rgba(0, 200, 83, 0.05);
+        }
+
+        .history-item.loss {
+            border-left-color: #ff1744;
+            background: rgba(255, 23, 68, 0.05);
+        }
+
+        .history-multiplier {
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .history-win {
+            color: #00c853;
+            font-weight: 600;
+        }
+
+        .history-loss {
+            color: #ff1744;
+            font-weight: 600;
+        }
+
+        .history-time {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+        }
+
+        /* Топ игроков */
+        .top-list {
+            margin: 15px 0;
+        }
+
+        .top-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .top-rank {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .rank-1 { color: #ffd700; }
+        .rank-2 { color: #c0c0c0; }
+        .rank-3 { color: #cd7f32; }
+
+        .top-info {
+            flex: 1;
+        }
+
+        .top-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .top-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .top-profit {
+            font-weight: 600;
+            color: #00c853;
+        }
+
+        .user-rank {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(58, 123, 213, 0.1);
+            border-radius: 16px;
+            border: 1px solid rgba(58, 123, 213, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Инструкция */
+        .instruction-section {
+            margin: 20px 0;
+        }
+
+        .instruction-block {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .instruction-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #a0c8ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .instruction-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .instruction-step:last-child {
+            border-bottom: none;
+        }
+
+        .step-number {
+            width: 24px;
+            height: 24px;
+            background: #3a7bd5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .donate-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .donate-option {
+            padding: 15px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 700;
+            color: #ffd700;
+        }
+
+        /* Кнопка вывода */
+        .withdraw-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #3a7bd5, #2a5aa0);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .withdraw-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(58, 123, 213, 0.4);
+        }
+
+        /* Фиксированная нижняя навигация */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(16, 25, 40, 0.8);
+            backdrop-filter: blur(30px) saturate(200%);
+            -webkit-backdrop-filter: blur(30px) saturate(200%);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            z-index: 100;
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .nav-item.active {
+            color: #3a7bd5;
+            background: rgba(58, 123, 213, 0.15);
+        }
+
+        .nav-item span {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .nav-item i {
+            font-size: 24px;
+        }
+
+        /* Скрытие вкладок */
+        .tab {
+            display: none;
+        }
+
+        .tab.active {
+            display: block;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 15px 90px 15px;
+            }
+            
+            .multiplier {
+                font-size: 36px;
+                padding: 8px 20px;
+            }
+            
+            .preset-btn {
+                font-size: 12px;
+                padding: 10px 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Стеклянные слои -->
+    <div class="glass-layers">
+        <div class="glass-layer-1"></div>
+        <div class="glass-layer-2"></div>
+        <div class="glass-layer-3"></div>
+    </div>
+    
+    <!-- Частицы -->
+    <div class="glass-particles">
+        <div class="glass-particle particle-1"></div>
+        <div class="glass-particle particle-2"></div>
+        <div class="glass-particle particle-3"></div>
+        <div class="glass-particle particle-4"></div>
+    </div>
+    
+    <!-- Отражения -->
+    <div class="glass-reflections"></div>
+    
+    <div class="container">
+        <!-- Шапка с балансом -->
+        <div class="header">
+            <div class="logo">🔥 ROCKET</div>
+            <div class="user-info">
+                <div class="balance-badge">
+                    <span>⭐</span>
+                    <span id="headerBalance">0</span>
+                </div>
+                <div class="username" id="username">@durov</div>
+            </div>
+        </div>
+        
+        <!-- Вкладка ИГРА -->
+        <div id="tabGame" class="tab active">
+            <div class="glass-card">
+                <div class="game-canvas-container">
+                    <canvas id="rocketCanvas"></canvas>
+                    <div class="multiplier" id="multiplier">1.00x</div>
+                </div>
+                
+                <div class="balance-large">
+                    <small>💰 БАЛАНС</small><br>
+                    <span id="gameBalance">0</span> ⭐
+                </div>
+                
+                <div class="bet-section">
+                    <div class="bet-input-row">
+                        <input type="number" id="betAmount" class="bet-input" value="100" min="10" max="5000">
+                        <button class="max-bet-btn" onclick="setMaxBet()">МАКС</button>
+                    </div>
+                    
+                    <div class="bet-presets">
+                        <button class="preset-btn" onclick="setBet(10)">10</button>
+                        <button class="preset-btn" onclick="setBet(50)">50</button>
+                        <button class="preset-btn active" onclick="setBet(100)">100</button>
+                        <button class="preset-btn" onclick="setBet(500)">500</button>
+                        <button class="preset-btn" onclick="setBet(1000)">1000</button>
+                    </div>
+                </div>
+                
+                <button id="gameButton" class="game-btn start" onclick="startGame()">
+                    🚀 ЗАПУСК РАКЕТУ
+                </button>
+                
+                <div class="potential-win" id="potentialWin">
+                    ВОЗМОЖНЫЙ ВЫИГРЫШ: <strong>0 ⭐</strong>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Вкладка СТАТА -->
+        <div id="tabStats" class="tab">
+            <div class="glass-card">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 48px; font-weight: 900; color: #ffd700;" id="statsBalance">0</div>
+                    <div style="color: rgba(255,255,255,0.5);">Текущий баланс</div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Всего игр</div>
+                        <div class="stat-value" id="totalGames">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Побед</div>
+                        <div class="stat-value win" id="totalWins">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Поражений</div>
+                        <div class="stat-value loss" id="totalLosses">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Винрейт</div>
+                        <div class="stat-value" id="winRate">0%</div>
+                    </div>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 15px;">🏆 РЕКОРДЫ</div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 8px;">
+                        <span>Макс. множитель</span>
+                        <span style="font-weight: 900; color: #a0c8ff;" id="maxMultiplier">1.00x</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 8px;">
+                        <span>Макс. выигрыш</span>
+                        <span style="font-weight: 900; color: #00c853;" id="maxWin">0 ⭐</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 12px;">
+                        <span>Макс. ставка</span>
+                        <span style="font-weight: 900; color: #ffd700;" id="maxBet">0 ⭐</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 15px;">📜 ПОСЛЕДНИЕ ИГРЫ</div>
+                    <div class="history-list" id="gameHistory"></div>
+                </div>
+                
+                <button class="withdraw-btn" onclick="requestWithdraw()">
+                    💬 ЗАПРОС ВЫВОДА ЗВЕЗД
+                </button>
+            </div>
+        </div>
+        
+        <!-- Вкладка ТОП -->
+        <div id="tabTop" class="tab">
+            <div class="glass-card">
+                <div style="font-size: 24px; font-weight: 900; text-align: center; margin-bottom: 20px;">
+                    🏆 ТОП-10 ИГРОКОВ
+                </div>
+                
+                <div class="top-list" id="topPlayers"></div>
+                
+                <div class="user-rank" id="userRank">
+                    <span>📍 ТВОЕ МЕСТО</span>
+                    <span style="font-weight: 900;" id="userRankPlace">#0</span>
+                </div>
+                
+                <button class="withdraw-btn" onclick="refreshTop()" style="margin-top: 15px;">
+                    🔄 ОБНОВИТЬ
+                </button>
+            </div>
+        </div>
+        
+        <!-- Вкладка ИНСТРУКЦИЯ -->
+        <div id="tabInstructions" class="tab">
+            <div class="glass-card">
+                <div class="instruction-section">
+                    <div class="instruction-block">
+                        <div class="instruction-title">
+                            <span>📌</span> КАК ПОПОЛНИТЬ БАЛАНС
+                        </div>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">1</div>
+                            <div>Напиши боту: <strong>/donate</strong></div>
+                        </div>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">2</div>
+                            <div>Выбери количество звезд:</div>
+                        </div>
+                        
+                        <div class="donate-options">
+                            <div class="donate-option">50 ⭐</div>
+                            <div class="donate-option">100 ⭐</div>
+                            <div class="donate-option">500 ⭐</div>
+                            <div class="donate-option">1000 ⭐</div>
+                        </div>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">3</div>
+                            <div>Оплати через Telegram Stars</div>
+                        </div>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">4</div>
+                            <div>Звезды сразу зачислятся на баланс</div>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-block">
+                        <div class="instruction-title">
+                            <span>💳</span> КАК ВЫВЕСТИ
+                        </div>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">1</div>
+                            <div>Зайди во вкладку "МОЯ СТАТА"</div>
+                        </div>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">2</div>
+                            <div>Нажми "💬 ЗАПРОС ВЫВОДА"</div>
+                        </div>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">3</div>
+                            <div>Напиши админу @admin сумму</div>
+                        </div>
+                        
+                        <div class="instruction-step">
+                            <div class="step-number">4</div>
+                            <div>Админ переведет звезды вручную</div>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-block">
+                        <div class="instruction-title">
+                            <span>⚡️</span> ПРАВИЛА ИГРЫ
+                        </div>
+                        
+                        <div style="padding: 10px;">
+                            • Минимальная ставка: <strong>10 ⭐</strong><br><br>
+                            • Максимальная ставка: <strong>5000 ⭐</strong><br><br>
+                            • Ракета летит от 1x до 100x<br><br>
+                            • Чем выше множитель, тем риск краша<br><br>
+                            • Успей забрать выигрыш до взрыва!<br><br>
+                            • Нажал СТОП = забрал деньги<br><br>
+                            • Ракета взорвалась = проигрыш ставки
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0; font-size: 24px;">
+                        🎯 УДАЧИ В ИГРЕ!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Фиксированная нижняя навигация -->
+    <div class="bottom-nav">
+        <div class="nav-items">
+            <div class="nav-item active" onclick="switchTab('game')">
+                <div style="font-size: 24px;">🚀</div>
+                <span>ИГРА</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('stats')">
+                <div style="font-size: 24px;">📊</div>
+                <span>СТАТА</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('top')">
+                <div style="font-size: 24px;">🏆</div>
+                <span>ТОП</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('instructions')">
+                <div style="font-size: 24px;">ℹ️</div>
+                <span>ИНСТРУКЦИЯ</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.disableVerticalSwipes();
+        
+        // Данные пользователя
+        const userId = tg.initDataUnsafe?.user?.id;
+        const username = tg.initDataUnsafe?.user?.username || 'player';
+        document.getElementById('username').textContent = '@' + username;
+        
+        // Состояние игры
+        let balance = 1250; // Временные данные, потом с сервера
+        let currentBet = 100;
+        let gameActive = false;
+        let gameInterval = null;
+        let currentMultiplier = 1.0;
+        let crashPoint = null;
+        let gameId = null;
+        
+        // Статистика
+        let stats = {
+            totalGames: 127,
+            wins: 73,
+            losses: 54,
+            maxMultiplier: 12.45,
+            maxWin: 2450,
+            maxBet: 500,
+            history: [
+                { multiplier: 2.34, win: 134, time: '2 мин назад', result: 'win' },
+                { crash: true, loss: 50, time: '5 мин назад', result: 'loss' },
+                { multiplier: 1.56, win: 56, time: '12 мин назад', result: 'win' },
+                { multiplier: 4.21, win: 321, time: '25 мин назад', result: 'win' },
+                { crash: true, loss: 100, time: '1 час назад', result: 'loss' }
+            ]
+        };
+        
+        // Топ игроков
+        const topPlayers = [
+            { name: '@cryptoking', profit: 12450, winrate: 68 },
+            { name: '@ml_pro', profit: 8230, winrate: 62 },
+            { name: '@rocketmaster', profit: 5670, winrate: 71 },
+            { name: '@player123', profit: 3450, winrate: 55 },
+            { name: '@legend_ml', profit: 2890, winrate: 59 },
+            { name: '@toxic_gamer', profit: 2450, winrate: 51 },
+            { name: '@ml_champion', profit: 2100, winrate: 63 },
+            { name: '@star_player', profit: 1890, winrate: 57 },
+            { name: '@rocket_lover', profit: 1670, winrate: 52 },
+            { name: '@lucky_one', profit: 1450, winrate: 60 }
+        ];
+        
+        // Обновление интерфейса
+        function updateBalanceUI() {
+            document.getElementById('headerBalance').textContent = balance;
+            document.getElementById('gameBalance').textContent = balance;
+            document.getElementById('statsBalance').textContent = balance;
+        }
+        
+        // Установка ставки
+        function setBet(amount) {
+            currentBet = amount;
+            document.getElementById('betAmount').value = amount;
+            
+            // Подсветка активной кнопки
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updatePotentialWin();
+        }
+        
+        function setMaxBet() {
+            currentBet = Math.min(5000, balance);
+            document.getElementById('betAmount').value = currentBet;
+            updatePotentialWin();
+        }
+        
+        // Обновление поля ставки при вводе
+        document.getElementById('betAmount').addEventListener('input', function(e) {
+            let value = parseInt(e.target.value) || 0;
+            value = Math.min(5000, Math.max(10, value));
+            currentBet = value;
+            e.target.value = value;
+            updatePotentialWin();
+        });
+        
+        // Обновление потенциального выигрыша
+        function updatePotentialWin() {
+            const potential = Math.floor(currentBet * currentMultiplier);
+            document.getElementById('potentialWin').innerHTML = 
+                `ВОЗМОЖНЫЙ ВЫИГРЫШ: <strong>${potential} ⭐</strong>`;
+        }
+        
+        // Генерация точки краша (честная, с перевесом казино)
+        function generateCrashPoint() {
+            const e = Math.random();
+            let crashPoint = 0.95 / (1 - e);
+            crashPoint = Math.max(1.01, Math.min(100, crashPoint));
+            return Math.floor(crashPoint * 100) / 100;
+        }
+        
+        // Запуск игры
+        async function startGame() {
+            if (gameActive) return;
+            
+            if (currentBet > balance) {
+                tg.showAlert('❌ Недостаточно звезд!');
+                return;
+            }
+            
+            // В реальности тут запрос к серверу
+            gameActive = true;
+            crashPoint = generateCrashPoint();
+            currentMultiplier = 1.0;
+            
+            // Меняем кнопку
+            const btn = document.getElementById('gameButton');
+            btn.textContent = '🛑 СТОП';
+            btn.classList.remove('start');
+            btn.classList.add('stop');
+            btn.onclick = stopGame;
+            
+            // Запускаем анимацию
+            startAnimation();
+        }
+        
+        // Остановка игры (забрать выигрыш)
+        async function stopGame() {
+            if (!gameActive) return;
+            
+            clearInterval(gameInterval);
+            gameActive = false;
+            
+            // Расчет выигрыша
+            const win = Math.floor(currentBet * currentMultiplier);
+            balance += win - currentBet; // Добавляем чистый выигрыш
+            
+            // Сохраняем в историю
+            addGameToHistory({
+                multiplier: currentMultiplier,
+                win: win,
+                time: 'только что',
+                result: 'win'
+            });
+            
+            updateBalanceUI();
+            tg.showAlert(`✅ Выигрыш: ${win} ⭐`);
+            
+            resetButton();
+        }
+        
+        // Анимация полета
+        function startAnimation() {
+            const canvas = document.getElementById('rocketCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Устанавливаем размер canvas
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            
+            let startTime = Date.now();
+            
+            gameInterval = setInterval(() => {
+                const elapsed = (Date.now() - startTime) / 1000; // секунды
+                
+                // Рост множителя (нелинейный для эффекта)
+                currentMultiplier = 1 + Math.pow(elapsed, 1.5) * 0.5;
+                
+                // Проверка на краш
+                if (currentMultiplier >= crashPoint) {
+                    // КРАШ!
+                    clearInterval(gameInterval);
+                    gameActive = false;
+                    
+                    // Списываем ставку
+                    balance -= currentBet;
+                    
+                    // Сохраняем в историю
+                    addGameToHistory({
+                        crash: true,
+                        loss: currentBet,
+                        time: 'только что',
+                        result: 'loss'
+                    });
+                    
+                    updateBalanceUI();
+                    tg.showAlert(`💥 КРАШ! Ракета взорвалась на ${crashPoint.toFixed(2)}x`);
+                    
+                    resetButton();
+                    return;
+                }
+                
+                // Обновляем UI
+                document.getElementById('multiplier').textContent = currentMultiplier.toFixed(2) + 'x';
+                updatePotentialWin();
+                
+                // Рисуем на canvas
+                drawCanvas(ctx, elapsed, currentMultiplier);
+                
+            }, 50); // 20 FPS для плавности
+        }
+        
+        // Отрисовка canvas
+        function drawCanvas(ctx, time, multiplier) {
+            const w = ctx.canvas.width;
+            const h = ctx.canvas.height;
+            
+            ctx.clearRect(0, 0, w, h);
+            
+            // Рисуем сетку
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            
+            // Горизонтальные линии
+            for (let i = 0; i < 5; i++) {
+                const y = h - (h / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.stroke();
+            }
+            
+            // Рисуем траекторию
+            ctx.beginPath();
+            ctx.strokeStyle = '#3a7bd5';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#3a7bd5';
+            ctx.shadowBlur = 15;
+            
+            for (let x = 0; x < w; x += 5) {
+                const progress = x / w;
+                const y = h - (h * Math.pow(progress, 1.5) * 0.8) - 20;
+                
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+            
+            ctx.shadowBlur = 0;
+            
+            // Рисуем ракету
+            const rocketX = w * 0.3;
+            const rocketY = h - (h * Math.pow(0.3, 1.5) * 0.8) - 30;
+            
+            ctx.shadowColor = '#ffd700';
+            ctx.shadowBlur = 20;
+            ctx.font = '30px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.fillText('🚀', rocketX, rocketY);
+            
+            ctx.shadowBlur = 0;
+        }
+        
+        // Добавление игры в историю
+        function addGameToHistory(game) {
+            stats.history.unshift(game);
+            stats.history = stats.history.slice(0, 10); // Храним 10 последних
+            
+            if (game.result === 'win') {
+                stats.wins++;
+                stats.totalGames++;
+            } else {
+                stats.losses++;
+                stats.totalGames++;
+            }
+            
+            updateStatsUI();
+        }
+        
+        // Обновление статистики
+        function updateStatsUI() {
+            document.getElementById('totalGames').textContent = stats.totalGames;
+            document.getElementById('totalWins').textContent = stats.wins;
+            document.getElementById('totalLosses').textContent = stats.losses;
+            
+            const winrate = stats.totalGames > 0 
+                ? Math.round((stats.wins / stats.totalGames) * 100) 
+                : 0;
+            document.getElementById('winRate').textContent = winrate + '%';
+            
+            document.getElementById('maxMultiplier').textContent = stats.maxMultiplier.toFixed(2) + 'x';
+            document.getElementById('maxWin').textContent = stats.maxWin + ' ⭐';
+            document.getElementById('maxBet').textContent = stats.maxBet + ' ⭐';
+            
+            // История
+            const historyHtml = stats.history.map(game => {
+                if (game.result === 'win') {
+                    return `<div class="history-item win">
+                        <div>
+                            <span class="history-multiplier">x${game.multiplier.toFixed(2)}</span>
+                        </div>
+                        <div>
+                            <span class="history-win">+${game.win} ⭐</span>
+                        </div>
+                        <div class="history-time">${game.time}</div>
+                    </div>`;
+                } else {
+                    return `<div class="history-item loss">
+                        <div>
+                            <span class="history-multiplier">💥 CRASH</span>
+                        </div>
+                        <div>
+                            <span class="history-loss">-${game.loss} ⭐</span>
+                        </div>
+                        <div class="history-time">${game.time}</div>
+                    </div>`;
+                }
+            }).join('');
+            
+            document.getElementById('gameHistory').innerHTML = historyHtml;
+        }
+        
+        // Обновление топа
+        function updateTopUI() {
+            const topHtml = topPlayers.map((player, index) => {
+                const rankClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : ''));
+                return `<div class="top-item">
+                    <div class="top-rank ${rankClass}">${index + 1}</div>
+                    <div class="top-info">
+                        <div class="top-name">${player.name}</div>
+                        <div class="top-stats">
+                            <span>💰 +${player.profit} ⭐</span>
+                            <span>📊 ${player.winrate}%</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            
+            document.getElementById('topPlayers').innerHTML = topHtml;
+            document.getElementById('userRankPlace').textContent = '#42';
+        }
+        
+        // Сброс кнопки
+        function resetButton() {
+            const btn = document.getElementById('gameButton');
+            btn.textContent = '🚀 ЗАПУСК РАКЕТУ';
+            btn.classList.remove('stop');
+            btn.classList.add('start');
+            btn.onclick = startGame;
+            
+            currentMultiplier = 1.0;
+            document.getElementById('multiplier').textContent = '1.00x';
+            updatePotentialWin();
+        }
+        
+        // Переключение вкладок
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+        
+        // Запрос вывода
+        function requestWithdraw() {
+            tg.openTelegramLink('https://t.me/admin');
+            tg.showAlert('Напиши админу @admin сумму для вывода');
+        }
+        
+        // Обновление топа
+        function refreshTop() {
+            updateTopUI();
+            tg.showAlert('✅ Топ обновлен');
+        }
+        
+        // Инициализация
+        updateBalanceUI();
+        updateStatsUI();
+        updateTopUI();
+        updatePotentialWin();
+        
+        // Обработка ресайза canvas
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('rocketCanvas');
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        });
+    </script>
+</body>
+</html>
